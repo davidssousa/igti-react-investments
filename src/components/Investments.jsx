@@ -3,11 +3,11 @@ import moment from 'moment';
 import { useState, useEffect } from 'react';
 
 export default function Investmests(props) {
-  const baseUrl = 'http://localhost:3000';
+  const baseUrl = 'https://igti-react-investments-backend.herokuapp.com';
   const requestInvestiments = axios.get(`${baseUrl}/investments`)
   const requestReports = axios.get(`${baseUrl}/reports`)
 
-  const [investments, setInvestments] = useState(null);
+  const [investments, setInvestments] = useState([]);
 
   function formatCurrency(value) {
     return value.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' })
@@ -93,7 +93,7 @@ export default function Investmests(props) {
       </header>
 
       <main>
-        <div className='container mx-auto p-4 block'>
+        <div className="container mx-auto p-4 block">
           {investments.map((inv) => {
             return (
               <>
