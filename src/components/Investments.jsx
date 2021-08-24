@@ -1,6 +1,7 @@
 import axios from 'axios';
 import moment from 'moment';
 import { useState, useEffect } from 'react';
+import { v4 as guid } from 'uuid'
 
 export default function Investmests(props) {
   const baseUrl = 'https://igti-react-investments-backend.herokuapp.com';
@@ -27,9 +28,9 @@ export default function Investmests(props) {
     return 0
   }
 
-  function calcPercentual(actualValue, previewsValue) {
-    if (previewsValue === 0) return 0
-    return ((actualValue - previewsValue) / previewsValue) * 1
+  function calcPercentual(actualValue, valuePreviews) {
+    if (valuePreviews === 0) return 0
+    return ((actualValue - valuePreviews) / valuePreviews) * 1
   }
 
   function getValuePreviews(year, month, reports) {
@@ -46,41 +47,61 @@ export default function Investmests(props) {
     return 'red'
   }
 
+  function mapReportsWithValuePreviews(r, i, reports) {
+    return {...r, 
+      valuePreviews: getValuePreviews(r.year, r.month, reports) 
+    }
+  }
+
+  function mapReportsWithPercentual(r, i, reports) {
+    return {...r,  
+      percentual: calcPercentual(r.value, r.valuePreviews)    
+    }
+  }
+
+  function mapInvestmentsWithTotal(inv, i, investments) {
+    return {...inv,  
+      total: calcTotalInvestmentByReports(inv.reports)    
+    }
+  }
+
+  function calcTotalInvestmentByReports(reports) {
+    return reports.reduce((a, b) => a + b.value, 0)
+  }
+
+  function mapInvestmentsWithTotalPercentual(inv, i, investments) {
+    return {...inv,  
+      totalPercents: calcTotalPercentualByInvestmentInReportsPercentual(inv.reports)    
+    }
+  }
+
+  function calcTotalPercentualByInvestmentInReportsPercentual(reports) {
+    return reports.reduce((a, b) => a + b.percentual, 0)
+  }
+
 
   useEffect(() => {
     axios.all([requestInvestiments, requestReports])
       .then(axios.spread((...responses) => {
         const [responseInvestments, responseReports] = responses
 
-        const mapReports = responseReports.data
-          .sort(sortReports)
-          .map((rep, i, reports) => {
-            return {
-              ...rep,
-              percentual: calcPercentual(rep.value, getValuePreviews(rep.year, rep.month, reports))
-            }
-          })
-
-        const mapInvestments = responseInvestments.data.map(inv => {
-          return {
-            ...inv,
-
-            reports: mapReports
-              .filter(r => r.investmentId === inv.id),
-
-            total: mapReports
-              .filter(r => r.investmentId === inv.id)
-              .reduce((acc, curr) => acc + curr.value, 0),
-
-            totalPercents: mapReports
-              .filter(r => r.investmentId === inv.id)
-              .reduce((acc, curr) => acc + curr.percentual, 0),
-          }
-        })
+        const mapInvestments = responseInvestments
+                                  .data
+                                  .map(inv => ({
+                                    ...inv,
+                                    reports: responseReports
+                                      .data
+                                      .filter(r => r.investmentId === inv.id)
+                                      .sort(sortReports)
+                                      .map(mapReportsWithValuePreviews)
+                                      .map(mapReportsWithPercentual)
+                                  }))
+                                  .map(mapInvestmentsWithTotal)
+                                  .map(mapInvestmentsWithTotalPercentual)
 
         setInvestments(mapInvestments)
       }))
-  }, []);
+  });
 
   return (
     <div>
@@ -94,7 +115,7 @@ export default function Investmests(props) {
 
       <main>
         <div className="container mx-auto p-4 block">
-          {investments.map((inv) => {
+          {investments.map((inv, i) => {
             return (
               <>
                 <span className="pt-5 flex justify-center font-extralight text-2xl">{inv.description}</span>
@@ -117,12 +138,12 @@ export default function Investmests(props) {
 
                 </div>
                 <div className="border-2 px-5 pb-10 pt-5 rounded-md">
-                  <table className="w-full ">
+                  <table key={guid()} className="w-full">
                     <tbody>
                       {
                         inv.reports.map((rep, i) => {
                           return (
-                            <tr key={i} className="w-full border-b-2 h-10 b" style={{backgroundColor: i % 2 ? 'rgb(243, 244, 246)' : 'white'}}>
+                            <tr key={guid()} className="w-full border-b-2 h-10 b" style={{backgroundColor: i % 2 ? 'rgb(243, 244, 246)' : 'white'}}>
                               <td className="text-center">{formatDate(rep.year, rep.month)}</td>
                               <td className="text-center">{formatCurrency(rep.value)}</td>
                               <td className="text-center">
