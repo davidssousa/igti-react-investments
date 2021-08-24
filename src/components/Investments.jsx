@@ -79,6 +79,7 @@ export default function Investmests(props) {
     return reports.reduce((a, b) => a + b.percentual, 0)
   }
 
+console.log('deploy')
 
   useEffect(() => {
     axios.all([requestInvestiments, requestReports])
