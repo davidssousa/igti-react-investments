@@ -115,10 +115,10 @@ console.log('deploy')
       </header>
 
       <main>
-        <div className="container mx-auto p-4 block">
+        <div className="container mx-auto block  mt-5 p-4">
           {investments.map((inv, i) => {
             return (
-              <>
+              <div className="rounded-lg border p-5 mb-5">
                 <span className="pt-5 flex justify-center font-extralight text-2xl">{inv.description}</span>
                 <div className="pt-5 flex justify-center m-5">
                   <span>{'Redimento Total:'}</span>
@@ -138,7 +138,7 @@ console.log('deploy')
                   </span>
 
                 </div>
-                <div className="border-2 px-5 pb-10 pt-5 rounded-md">
+                <div className="border-2 px-5 pb-10 pt-5 rounded-md bg-white">
                   <table key={guid()} className="w-full">
                     <tbody>
                       {
@@ -164,7 +164,7 @@ console.log('deploy')
                   </table>
                 </div>
 
-              </>
+              </div>
             )
           })}
         </div>
